@@ -90,14 +90,12 @@ app.whenReady().then(async () => {
       "SELECT * FROM alarms",
       async (err, row: Serialized<Alarm>) => {
         if (err) throw err;
-        if (dayjs(row.time).isBefore(time)) {
-          win.webContents.send("alarm-trigger", row.id);
-          player.play(
-            path.join(
-              __dirname,
-              "sounds",
-              "mixkit-rooster-crowing-in-the-morning-2462.wav",
-            ),
+        const alarmTime = dayjs(row.time);
+        if (alarmTime.isBefore(time)) {
+          win.webContents.send(
+            "alarm-trigger",
+            row.id,
+            alarmTime.format("HH:mm"),
           );
           await db.run("DELETE FROM alarms WHERE id = ?", [row.id]);
         }

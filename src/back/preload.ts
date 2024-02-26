@@ -11,7 +11,9 @@ const expose = <T extends keyof IpcApi>(apiKey: T, api: IpcApi[T]) => {
 expose("alarms", {
   onceLoaded: async (callback) => callback(await invoke("load-alarms")),
   onTrigger: (callback) =>
-    ipcRenderer.on("alarm-trigger", (_, id: string) => callback(id)),
+    ipcRenderer.on("alarm-trigger", (_, id: string, hour: string) =>
+      callback(id, hour),
+    ),
   add: (time) => invoke("add-alarm", time),
   set: (id, time) => invoke("set-alarm", id, time),
   remove: (id) => invoke("remove-alarm", id),

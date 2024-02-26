@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import { StaticDateTimePicker } from "@mui/x-date-pickers";
+import Swal from "sweetalert2";
 
 type AlarmEditorProps = {
   selectedAlarm: Alarm | "new";
@@ -26,19 +27,18 @@ export const AlarmEditor = (props: AlarmEditorProps) => {
         onChange={(value) => setTime(value ?? dayjs())}
         onAccept={() => {
           if (time.isBefore(dayjs())) {
-            alert("You can't set an alarm in the past!");
+            Swal.fire({
+              title: "Error",
+              text: "You can't set an alarm in the past!",
+              icon: "error",
+            });
             return;
           }
           if (props.selectedAlarm == "new") props.addAlarm(time);
           else props.setAlarm(props.selectedAlarm.id, time);
         }}
         onClose={() => props.exitEditor()}
-        minDate={dayjs()}
-        minTime={
-          time.format("YYYYMMDD") === dayjs().format("YYYYMMDD")
-            ? dayjs().set("s", 0).add(1, "m")
-            : undefined
-        }
+        minDateTime={dayjs().set("s", 0).add(1, "m")}
       />
     </>
   );

@@ -5,6 +5,8 @@ import type { Alarm } from "@shared/alarm";
 import AlarmEditor from "./components/AlarmEditor";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
+import { errorAlert } from "@shared/error";
+import Swal from "sweetalert2";
 
 const App = () => {
   const [alarms, setAlarms] = useState<Alarm[]>([]);
@@ -16,7 +18,6 @@ const App = () => {
 
   const addAlarm = async (time: Dayjs) => {
     const id = await window.alarms.add(time.format("YYYY-MM-DD HH:mm:ss"));
-
     setAlarms([...alarms, { id, time }]);
     return id;
   };
@@ -25,7 +26,7 @@ const App = () => {
     try {
       await window.alarms.set(id, time.format("YYYY-MM-DD HH:mm:ss"));
     } catch (error) {
-      alert(error);
+      errorAlert(error);
       return;
     }
 
@@ -49,11 +50,19 @@ const App = () => {
     window.alarms.onceLoaded((data) => {
       setAlarms(data.map(({ id, time }) => ({ id, time: dayjs(time) })));
     });
-    window.alarms.onTrigger((id) => {
-      console.log(`Alarm ${id} triggered!`);
-      alert(`Alarm ${id} triggered!`);
-      if (selectedAlarm !== "new" && selectedAlarm?.id === id)
-        setSelectedAlarm(null);
+    window.alarms.onTrigger((id, hour) => {
+      const audio = new Audio("/sounds/mixkit-scanning-sci-fi-alarm-905.wav");
+      audio.onplaying = () => {
+        Swal.fire({
+          title: "Alarm",
+          text: hour,
+          preConfirm: () => audio.pause(),
+        });
+      };
+      audio.play();
+      setSelectedAlarm((alarm) =>
+        alarm !== "new" && alarm?.id === id ? null : alarm,
+      );
       setAlarms((alarms) => alarms.filter((alarm) => alarm.id !== id));
     });
 
