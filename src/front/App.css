@@ -1,0 +1,86 @@
+#main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+#clock {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3rem;
+  color: gray;
+}
+
+#alarms {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+#alarms-title {
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+
+#alarm-adder {
+  display: flex;
+  padding-left: 30px;
+  padding-right: 30px;
+  margin: 10px;
+  font-size: 2rem;
+  align-items: center;
+  background-color: lightgray;
+  color: gray;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+#alarm-adder:hover {
+  background-color: gray;
+  color: white;
+}
+
+#alarm-list {
+  margin: 0;
+  display: block;
+  overflow-y: auto;
+  height: 100%;
+  list-style-type: none;
+}
+
+.alarm {
+  cursor: pointer;
+  box-sizing: border-box;
+  height: 3rem;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+.alarm:hover {
+  background-color: #cef5f5;
+}
+
+.alarm-remover {
+  font-weight: bolder;
+  font-size: 1.5rem;
+  padding: 10px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  margin-right: 10px;
+  background-color: lightgray;
+  color: gray;
+  border-radius: 10px;
+}
+
+.alarm-remover:hover {
+  background-color: gray;
+  color: white;
+}
