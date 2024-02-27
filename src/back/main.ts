@@ -7,6 +7,7 @@ import type { Alarm } from "@shared/types/alarm";
 import { open as openDatabase } from "sqlite";
 import sqlite3 = require("sqlite3");
 import { promiseWithResolvers } from "./utils/promise-with-resolvers";
+import { existsSync, mkdirSync } from "fs";
 
 // The built directory structure
 //
@@ -56,6 +57,7 @@ app
   });
 
 app.whenReady().then(async () => {
+  if (!existsSync("databases")) mkdirSync("databases");
   const db = await openDatabase({
     filename: "databases/alarms.sqlite",
     driver: sqlite3.Database,

@@ -26,4 +26,4 @@ release
 *.sw?
 
 # database
-alarm.db
+*.sqlite

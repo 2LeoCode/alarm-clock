@@ -9,8 +9,9 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "postinstall": "electron-builder install-app-deps",
     "clean": "rm -rf dist dist-electron release",
+    "clean-db": "rm -rf databases",
     "clean-deps": "rm -rf node_modules",
-    "clean-all": "npm run clean && npm run clean-deps"
+    "clean-all": "npm run clean && npm run clean-deps && npm run clean-db"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
