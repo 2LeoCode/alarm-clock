@@ -33,6 +33,8 @@ const createWindow = () => {
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
+    height: 768,
+    width: 1024,
   });
 
   if (VITE_DEV_SERVER_URL) win.loadURL(VITE_DEV_SERVER_URL);

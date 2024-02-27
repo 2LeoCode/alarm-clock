@@ -4,9 +4,13 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
+    "prod": "electron .",
     "build": "tsc && vite build && electron-builder",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "postinstall": "electron-builder install-app-deps",
+    "clean": "rm -rf dist dist-electron release",
+    "clean-deps": "rm -rf node_modules",
+    "clean-all": "npm run clean && npm run clean-deps"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
@@ -18,7 +22,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7",
+    "sqlite3": "5.1.6",
     "sweetalert2": "^11.10.5"
   },
   "devDependencies": {
