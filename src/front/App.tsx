@@ -18,7 +18,7 @@ const App = () => {
 
   const addAlarm = async (time: Dayjs, description: string) => {
     for (const alarm of alarms) {
-      if (alarm.time.isSame(time)) {
+      if (alarm.time.isSame(time, "s")) {
         Swal.fire({
           title: "Error",
           text: `An alarm is already set at ${time.format("HH:mm")}!`,

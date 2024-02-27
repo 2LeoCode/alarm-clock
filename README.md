@@ -14,3 +14,8 @@ When you saved some alarms, they will be shown on the right of the screen, and i
 If you want to remove an alarm, just click the **-** button on the right of the alarm you want to remove.
 If you want to edit an alarm, just click anywhere on the alarm you want to edit, it will then redirect you back on the alarm editor page, when the modifications are done you can either click **OK** to save your changes, or **CANCEL** to discard them.
 If you close the app for some time and reopen it later, you will be prompted with a message listing all alarms that were triggered while the app was closed.
+
+## Possible upgrades
+
+- Adding a way to reshedule an alarm to later when it triggers.
+- Adding a "week system" (possibility to shedule an alarm for multiple days in the week).
