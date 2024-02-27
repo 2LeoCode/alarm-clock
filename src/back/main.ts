@@ -29,7 +29,7 @@ let time = dayjs();
 
 const createWindow = () => {
   const win = new BrowserWindow({
-    // icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    icon: path.join(process.env.VITE_PUBLIC, "images", "109613.png"),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
