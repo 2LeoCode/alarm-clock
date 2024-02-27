@@ -1,11 +1,11 @@
 import "./App.css";
 
-import { useState, useEffect, useRef } from "react";
-import type { Alarm } from "@shared/alarm";
+import { useState, useRef, useMemo } from "react";
+import type { Alarm } from "@shared/types/alarm";
 import AlarmEditor from "./components/AlarmEditor";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import { errorAlert } from "@shared/error";
+import { errorAlert } from "./utils/error-alert";
 import Swal from "sweetalert2";
 
 const App = () => {
@@ -16,21 +16,42 @@ const App = () => {
   );
   const frameRef = useRef(0);
 
-  const addAlarm = async (time: Dayjs) => {
-    const id = await window.alarms.add(time.format("YYYY-MM-DD HH:mm:ss"));
-    setAlarms([...alarms, { id, time }]);
-    return id;
+  const addAlarm = async (time: Dayjs, description: string) => {
+    for (const alarm of alarms) {
+      if (alarm.time.isSame(time)) {
+        Swal.fire({
+          title: "Error",
+          text: `An alarm is already set at ${time.format("HH:mm")}!`,
+          icon: "error",
+        });
+        return;
+      }
+    }
+
+    const id = await window.alarms.add(
+      time.format("YYYY-MM-DD HH:mm:ss"),
+      description,
+    );
+    setAlarms([...alarms, { id, time, description }]);
   };
 
-  const setAlarm = async (id: string, time: Dayjs) => {
+  const setAlarm = async (id: string, time: Dayjs, description: string) => {
     try {
-      await window.alarms.set(id, time.format("YYYY-MM-DD HH:mm:ss"));
+      await window.alarms.set(
+        id,
+        time.format("YYYY-MM-DD HH:mm:ss"),
+        description,
+      );
     } catch (error) {
       errorAlert(error);
       return;
     }
 
-    setAlarms(alarms.map((alarm) => (alarm.id === id ? { id, time } : alarm)));
+    setAlarms(
+      alarms.map((alarm) =>
+        alarm.id === id ? { id, time, description } : alarm,
+      ),
+    );
   };
 
   const removeAlarm = async (id: string) => {
@@ -46,22 +67,40 @@ const App = () => {
 
   const exitEditor = () => setSelectedAlarm(null);
 
-  useEffect(() => {
+  useMemo(() => {
     window.alarms.onceLoaded((data) => {
-      setAlarms(data.map(({ id, time }) => ({ id, time: dayjs(time) })));
-    });
-    window.alarms.onTrigger((id, hour) => {
-      const audio = new Audio("/sounds/mixkit-scanning-sci-fi-alarm-905.wav");
-      audio.onplaying = () => {
+      const deserialized = data.map((alarm) => ({
+        ...alarm,
+        time: dayjs(alarm.time),
+      }));
+      const triggered = deserialized.filter(({ time }) =>
+        time.isBefore(dayjs()),
+      );
+
+      if (triggered.length)
         Swal.fire({
-          title: "Alarm",
-          text: hour,
-          preConfirm: () => audio.pause(),
+          title: `${triggered.length} alarm${triggered.length > 1 ? "s were" : " was"} triggered during your absence`,
+          html: `<ul>${triggered
+            .map(
+              ({ time, description }) =>
+                `<li>${time.format("YYYY/MM/DD HH:mm")} ${description}</li>`,
+            )
+            .join("\n")}</ul>`,
         });
-      };
+      setAlarms(deserialized.filter((alarm) => !triggered.includes(alarm)));
+    });
+    window.alarms.onTrigger((id, hour, description) => {
+      const audio = new Audio("/sounds/mixkit-scanning-sci-fi-alarm-905.wav");
+      audio.addEventListener("playing", () => {
+        Swal.fire({
+          title: hour,
+          text: description,
+          didClose: () => audio.pause(),
+        });
+      });
       audio.play();
       setSelectedAlarm((alarm) =>
-        alarm !== "new" && alarm?.id === id ? null : alarm,
+        alarm !== "new" && alarm?.id === id ? "new" : alarm,
       );
       setAlarms((alarms) => alarms.filter((alarm) => alarm.id !== id));
     });
@@ -100,7 +139,7 @@ const App = () => {
           {alarms.map((alarm) => (
             <div key={alarm.id} className="alarm">
               <div onClick={() => setSelectedAlarm(alarm)}>
-                {alarm.time.format("YYYY/MM/DD HH:mm")}
+                {alarm.time.format("YYYY/MM/DD HH:mm")} {alarm.description}
               </div>
               <div
                 className="alarm-remover"

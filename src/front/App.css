@@ -56,12 +56,15 @@
 .alarm {
   cursor: pointer;
   box-sizing: border-box;
-  height: 3rem;
+  min-height: 3rem;
   width: 100%;
+  max-width: 100%;
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
   font-size: 1.2rem;
+  overflow-wrap: break-word;
+  word-break: break-all;
 }
 
 .alarm:hover {

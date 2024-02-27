@@ -2,10 +2,11 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import path from "node:path";
 import dayjs from "dayjs";
 import { randomUUID } from "crypto";
-import type { Serialized } from "@shared/serialized";
-import type { Alarm } from "@shared/alarm";
+import type { Serialized } from "@shared/types/serialized";
+import type { Alarm } from "@shared/types/alarm";
 import { open as openDatabase } from "sqlite";
 import sqlite3 = require("sqlite3");
+import { promiseWithResolvers } from "./utils/promise-with-resolvers";
 
 // The built directory structure
 //
@@ -54,32 +55,50 @@ app
 
 app.whenReady().then(async () => {
   const db = await openDatabase({
-    filename: "alarm.db",
+    filename: "databases/alarms.sqlite",
     driver: sqlite3.Database,
   });
 
+  const [alarmsLoaded, resolveAlarmsLoaded] = promiseWithResolvers<void>();
+
   await db.exec(
-    "CREATE TABLE IF NOT EXISTS alarms (id CHAR(36), time DATETIME)",
+    "CREATE TABLE IF NOT EXISTS alarms (id CHAR(36), time DATETIME, description NVARCHAR(100))",
   );
 
-  ipcMain.handle("add-alarm", async (_, time: string) => {
+  ipcMain.handle("add-alarm", async (_, time: string, description: string) => {
     const id = randomUUID();
-    await db.run("INSERT INTO alarms VALUES (?, ?)", [id, time]);
+    await db.run("INSERT INTO alarms VALUES (?, ?, ?)", [
+      id,
+      time,
+      description,
+    ]);
     return id;
   });
-  ipcMain.handle("set-alarm", async (_, id: string, time: string) => {
-    const res = await db.run("UPDATE alarms SET time = ? WHERE id = ?", [
-      time,
-      id,
-    ]);
-    if (res.changes === 0) throw new Error("Alarm not found");
-  });
+  ipcMain.handle(
+    "set-alarm",
+    async (_, id: string, time: string, description: string) => {
+      const res = await db.run(
+        "UPDATE alarms SET time = ?, description = ? WHERE id = ?",
+        [time, description, id],
+      );
+      if (res.changes === 0) throw new Error("Alarm not found");
+    },
+  );
   ipcMain.handle("remove-alarm", async (_, id: string) => {
     const res = await db.run("DELETE FROM alarms WHERE id = ?", [id]);
     if (res.changes === 0) throw new Error("Alarm not found");
   });
-  ipcMain.handle("load-alarms", () => {
-    return db.all("SELECT * FROM alarms");
+  ipcMain.handle("load-alarms", async () => {
+    const alarms = await db.all<Serialized<Alarm[]>>("SELECT * FROM alarms");
+
+    await Promise.all(
+      alarms.map(async (alarm) => {
+        if (dayjs(alarm.time).isBefore(time))
+          await db.run("DELETE FROM alarms WHERE id = ?", [alarm.id]);
+      }),
+    );
+    resolveAlarmsLoaded();
+    return alarms;
   });
 
   const win = createWindow();
@@ -96,6 +115,7 @@ app.whenReady().then(async () => {
             "alarm-trigger",
             row.id,
             alarmTime.format("HH:mm"),
+            row.description,
           );
           await db.run("DELETE FROM alarms WHERE id = ?", [row.id]);
         }
@@ -103,5 +123,6 @@ app.whenReady().then(async () => {
     );
     setImmediate(loop);
   };
+  await alarmsLoaded;
   loop();
 });
