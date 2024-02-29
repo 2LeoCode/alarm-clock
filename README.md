@@ -4,7 +4,10 @@ _A little clock and alarm gestion app_
 
 ## How to use
 
+To install dependancies: `npm i`
+
 To build the app: `npm run build`
+
 To launch the app: `npm run prod`
 
 On first launch you will see a clock on the left showing the current time and an empty alarm section on the right.
